@@ -18,13 +18,33 @@ public final class BcriptScreen extends MainScreen {
 		// Set the displayed title of the screen
 		setTitle("BCript");
 		new Thread() {
+			private long executionTime;
+			private long afterTime;
+
 			public void run() {
 				for (int i = 4; i < 30; i++) {
-					long executionTime = System.currentTimeMillis();
-					execute(i);
-					long afterTime = System.currentTimeMillis();
+					executionTime = System.currentTimeMillis();
+					String password = "12345678";
+					// Hash a password for the first time
+					String gensalt = BCrypt.gensalt(i);
+					afterTime = System.currentTimeMillis();
 					synchronized (UiApplication.getEventLock()) {
-						add(new LabelField("Time:" + (afterTime - executionTime) + " iterations:" + i));
+						add(new LabelField("Gensalt:" + (afterTime - executionTime)
+								+ " iterations:" + i));
+					}
+					executionTime = System.currentTimeMillis();
+					String hashed = BCrypt.hashpw(password, gensalt);
+					afterTime = System.currentTimeMillis();
+					synchronized (UiApplication.getEventLock()) {
+						add(new LabelField("Hashed:" + (afterTime - executionTime)
+								+ " iterations:" + i));
+					}
+					executionTime = System.currentTimeMillis();
+					BCrypt.checkpw(password, hashed);
+					afterTime = System.currentTimeMillis();
+					synchronized (UiApplication.getEventLock()) {
+						add(new LabelField("Time:" + (afterTime - executionTime)
+								+ " iterations:" + i));
 					}
 				}
 			}
@@ -32,19 +52,4 @@ public final class BcriptScreen extends MainScreen {
 
 	}
 
-	/**
-	 * @param i 
-	 * @return
-	 */
-	private boolean execute(int i) {
-		String password = "12345678";
-		// Hash a password for the first time
-		String hashed = BCrypt.hashpw(password, BCrypt.gensalt(i));
-		// Check that an unencrypted password matches one that has
-		// previously been hashed
-		System.out.println(hashed);
-		if (BCrypt.checkpw(password, hashed))
-			return true;
-		return false;
-	}
 }
